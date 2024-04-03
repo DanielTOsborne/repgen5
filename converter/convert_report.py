@@ -473,36 +473,61 @@ def map_SETTIME(*args, **kwargs):
     for x in range(2, len(args), 2):
         component = args[x]
         value = args[x + 1]
-
         ucomp = component.upper().strip()
 
-        if ucomp == "HOUR":
-            arguments["hour"] = value
-        if ucomp == "MINUTE":
-            arguments["minute"] = value
-        if ucomp == "SECOND":
-            arguments["second"] = value
-            arguments["microsecond"] = 0        # Always clear the microseconds
-        if ucomp == "TIME":
-            arguments["hour"] = value[:2]
-            arguments["minute"] = value[2:]
-            arguments["second"] = 0
-            arguments["microsecond"] = 0
+        if value.startswith("%"):
+            # Variable passed as 3rd argument
+            if ucomp == "HOUR":
+                arguments["hour"] = f"{value}.value.hour"
+            if ucomp == "MINUTE":
+                arguments["minute"] = f"{value}.value.minute"
+            if ucomp == "SECOND":
+                arguments["second"] = f"{value}.value.second"
+                arguments["microsecond"] = 0        # Always clear the microseconds
+            if ucomp == "TIME":
+                arguments["hour"] = f"{value}.value.hour"
+                arguments["minute"] = f"{value}.value.minute"
+                arguments["second"] = 0
+                arguments["microsecond"] = 0
+            if ucomp == "DAY":
+                arguments["day"] = f"{value}.value.day"
+            if ucomp == "MONTH":
+                arguments["month"] = f"{value}.value.month"
+            if ucomp == "YEAR":
+                arguments["year"] = f"{value}.value.year"
+            if ucomp == "DATE":
+                arguments["day"] = f"{value}.value.day"
+                arguments["month"] = f"{value}.value.month"
+                arguments["year"] = f"{value}.value.year"
+        else:
+            if ucomp == "HOUR":
+                arguments["hour"] = value
+            if ucomp == "MINUTE":
+                arguments["minute"] = value
+            if ucomp == "SECOND":
+                arguments["second"] = value
+                arguments["microsecond"] = 0        # Always clear the microseconds
+            if ucomp == "TIME":
+                arguments["hour"] = value[:2]
+                arguments["minute"] = value[2:]
+                arguments["second"] = 0
+                arguments["microsecond"] = 0
 
-        if ucomp == "DAY":
-            # Hack to fix monthly reports
-            if DATE_HACK & 4 and value == "1":
-                arguments["day"] = int(value) + 1
-            else:
-                arguments["day"] = value
-        if ucomp == "MONTH":
-            arguments["month"] = value
-        if ucomp == "YEAR":
-            arguments["year"] = value
-        if ucomp == "DATE":
-            arguments["day"] = value[:2]
-            arguments["month"] = datetime.strptime("%b", value[2:5]).strftime("%d")
-            arguments["year"] = value[5:]
+            if ucomp == "DAY":
+                # Hack to fix monthly reports
+                if DATE_HACK & 4 and value == "1":
+                    arguments["day"] = int(value) + 1
+                    source += "-timedelta(days=1)"
+                else:
+                    arguments["day"] = value
+            if ucomp == "MONTH":
+                arguments["month"] = value
+            if ucomp == "YEAR":
+                arguments["year"] = value
+            if ucomp == "DATE":
+                arguments["day"] = value[:2]
+                arguments["month"] = datetime.strptime("%b", value[2:5]).strftime("%d")
+                arguments["year"] = value[5:]
 
     if "hour" in arguments and arguments["hour"] == "24":
         # Python doesn't support 24 as a valid hour, so use 0, but set the date forward a day
@@ -524,9 +549,9 @@ def map_SETTIME(*args, **kwargs):
                 extra = "+ timedelta(days=1)"
                 if show_comment: extra = extra + "    # Add a day to offset setting the time to 00, instead of 24"
 
-    for key, value in arguments.items():
-        # Strip leading zeros
-        if isinstance(value, str): arguments[key] = re.sub(r"\b(?<!_)0([0-9]+)\b", r"\1", value)
+        for key, value in arguments.items():
+            # Strip leading zeros
+            if isinstance(value, str): arguments[key] = re.sub(r"\b(?<!_)0([0-9]+)\b", r"\1", value)
 
     if source != dest:
         result = result + "Value(%s)\n" % source
@@ -619,11 +644,13 @@ def map_EOM(*args):
 
     if source.startswith("%"): source = source[1:]
 
+    if DATE_HACK & 4:
+        source = "(%s-timedelta(days=1))" % source
     result = "calendar.monthrange(%s.value.timetuple().tm_year, %s.value.timetuple().tm_mon)[1]" % (source, source)
     # The object to be returned should be a date object, so pass through SETTIME
     # Since this is a function call mapping, the 'source' doesn't matter, as it's transitive.
     # The EOM is also assumed to be 2400 on the last day, so make sure that's explicitly set.
-    return map_SETTIME(args[1], args[1], "DAY", result, "HOUR", "24", comment=False)
+    return map_SETTIME(args[1], args[1], "YEAR", "%s.value.timetuple().tm_year" % source, "MONTH", "%s.value.timetuple().tm_mon" % source, "DAY", result, "HOUR", "24", comment=None, caller="EOM")
 
 # This assumes the values passed in are scalar Value types
 def map_DMY2DATE(*args):
@@ -807,7 +834,7 @@ def main(input: str, output: str):
                     # Transform each line, then write it to the output
                     if re.match(r"![-~]FUNCTION", curline): newline = "#"     # FUNCTION line isn't necessary
                     if re.match(r"!ECHO", curline): newline = "#"             # ignore !ECHO
-
+                        
                     # Loop through the line, grabbing tokens
                     # Parsing order matters
                     stripped = curline.strip()
