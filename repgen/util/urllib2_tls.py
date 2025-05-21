@@ -2,6 +2,7 @@ import http.client as httplib, urllib.request as urllib2
 import socket
 import ssl
 import sys
+import os
 # From: https://gist.github.com/flandr/74be22d1c3d7c1dfefdd
 
 # Python 2.6's urllib2 does not allow you to select the TLS dialect,
@@ -14,6 +15,8 @@ class TLS1Connection(httplib.HTTPSConnection):
     """Like HTTPSConnection but more specific"""
     def __init__(self, host, **kwargs):
         httplib.HTTPSConnection.__init__(self, host, **kwargs)
+        # Take advantage of the requestsCA env var
+        self.cert_file = os.getenv("REQUESTS_CA_BUNDLE", self.cert_file)
 
     def connect(self):
         """Overrides HTTPSConnection.connect to specify TLS version"""

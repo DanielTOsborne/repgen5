@@ -1,3 +1,4 @@
+import os
 import pytz,datetime,sys,time as ttime
 import operator
 from inspect import isfunction
@@ -21,7 +22,7 @@ except:
 	from datetime import timedelta
 
 # need to enable legacy ciphers for public CDA instance
-ssl_ctx = ssl.create_default_context()
+ssl_ctx = ssl.create_default_context(cafile=os.getenv("REQUESTS_CA_BUNDLE", None))
 ssl_ctx.set_ciphers('DEFAULT')
 
 # types
