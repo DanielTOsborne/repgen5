@@ -10,7 +10,7 @@ import re
 from repgen.util import extra_operator, filterAddress
 import signal
 from repgen import DB_OPTIONS, REPGEN_DOCS_URL
-from repgen.data.locations import LocationsApi
+#from repgen.data.locations import LocationsApi
 
 try:
 	# Relativedelta supports months and years, but is external library
@@ -590,14 +590,14 @@ class Value:
 		else:
 			raise Exception(f"\n\n\t{self.dbtype.upper()} is not supported!\n\tAvailable options are:\n\t\t {', '.join(DB_OPTIONS)}\n")
 
-	def meta(self, unit_system="EN"):
-		# set the Value properties as the keys of the location data
-		metaData = LocationsApi.getLocationById(locationId=self.dbloc, office=self.dbofc, unit=unit_system)
-		for key in metaData.keys():
-			# assign the values to the instance so they can be accessed
-			setattr(self, key, metaData[key])
-			Value.shared[key] = metaData[key]
-		return metaData
+	# def meta(self, unit_system="EN"):
+	# 	# set the Value properties as the keys of the location data
+	# 	metaData = LocationsApi.getLocationById(locationId=self.dbloc, office=self.dbofc, unit=unit_system)
+	# 	for key in metaData.keys():
+	# 		# assign the values to the instance so they can be accessed
+	# 		setattr(self, key, metaData[key])
+	# 		Value.shared[key] = metaData[key]
+	# 	return metaData
 	# math functions
 	def __add__( self, other ):
 		return self.domath(operator.add,other)
