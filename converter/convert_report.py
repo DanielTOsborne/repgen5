@@ -744,7 +744,10 @@ def map_ELEMENT(*args):
 
 #endregion
 
-def main(input: str, output: str):
+def main():
+    input = sys.argv[1]
+    output = sys.argv[2]
+
     remapped_variables = {}             # If any variables had to be renamed, keep track of this mapping
 
     def getName(name: str):
@@ -1157,8 +1160,6 @@ def main(input: str, output: str):
         print(f"Saving to: {output}")
 
 if __name__ == "__main__":
-    input = sys.argv[1]
-    output = sys.argv[2]
-    main(input, output)
+    main()
     
 # vim: ts=4 sw=4 expandtab fileencoding=utf-8

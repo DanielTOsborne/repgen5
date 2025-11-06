@@ -1,0 +1,50 @@
+[project]
+name = "cwms-repgen"
+dynamic = ["version"]
+dependencies = [
+  "requests>=2.27.1",
+  "pytz",
+]
+requires-python = ">=3.8"
+authors = [
+  { name = "USACE-HEC" },
+]
+description = "This is a partial copy of HEC's (Hydrologic Engineering Center) repgen program. The program creates fixed form text reports from a time series database, and textfiles."
+readme = "README.md"
+license = "MIT"
+license-files = [ "LICEN[CS]E.*" ]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+]
+urls = { GitHub = "https://github.com/USACE-WaterManagement/repgen5" }
+
+[project.optional-dependencies]
+dateutil = [
+  "python-dateutil>=2.8.2",
+]
+dev = [
+  "sphinx",
+  "sphinx_rtd_theme",
+  "sphinx-copybutton",
+  "myst-parser",
+  "twine",
+  "wheel",
+]
+
+[project.scripts]
+repgen = "repgen.__main__:main"
+repgen5 = "repgen.__main__:main"
+convert_report = "converter.convert_report:main"
+
+[build-system]
+# These are the assumed default build requirements from pip:
+# https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
+requires = [ "setuptools>=43.0.0", "wheel" ]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = { "repgen" = "repgen", "converter" = "converter" }
+
+[tool.setuptools.dynamic]
+version = { attr = "repgen.__main__.version" }
