@@ -744,10 +744,12 @@ def map_ELEMENT(*args):
 
 #endregion
 
-def main():
-    input = sys.argv[1]
-    output = sys.argv[2]
-
+def main(input = None, output = None):
+    if input is None:
+        input = sys.argv[1]
+    if output is None:
+        output = sys.argv[2]
+        
     remapped_variables = {}             # If any variables had to be renamed, keep track of this mapping
 
     def getName(name: str):
