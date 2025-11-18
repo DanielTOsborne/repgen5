@@ -113,7 +113,7 @@ class Report:
 							newval = data_point.misstr
 						# Replace every instance in the line *exactly* with the new value
 						if self.compatibility:
-							tmp = tmp.replace(v.upper(), newval)
+							tmp = re.sub(re.escape(v), newval, tmp, flags=re.IGNORECASE)
 						else:
 							tmp = tmp.replace(v, newval)
 					if self.compatibility:
