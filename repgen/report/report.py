@@ -104,7 +104,11 @@ class Report:
 							if newval is None:
 								newval = data_point.misstr
 							# Replace every instance in the line *exactly* with the new value
-							tmp = tmp.replace(match.group(0), newval)
+							if self.compatibility:
+								# To ensure column alignment, grab as many spaces as required to fill in difference between the label name and value
+								tmp = re.sub(rf'{re.escape(match.group(0))} {{0,{max(0,len(newval) - len(match.group(0)))}}}', newval, tmp, flags=re.IGNORECASE)
+							else:
+								tmp = tmp.replace(match.group(0), newval)
 					else: 
 						# pop the next value off the stack
 						newval = data_point.pop()
@@ -113,7 +117,8 @@ class Report:
 							newval = data_point.misstr
 						# Replace every instance in the line *exactly* with the new value
 						if self.compatibility:
-							tmp = re.sub(re.escape(v), newval, tmp, flags=re.IGNORECASE)
+							# To ensure column alignment, grab as many spaces as required to fill in difference between the label name and value
+							tmp = re.sub(rf'{re.escape(v)} {{0,{max(0,len(newval) - len(v))}}}', newval, tmp, flags=re.IGNORECASE)
 						else:
 							tmp = tmp.replace(v, newval)
 					if self.compatibility:
